@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from discord.ext.commands import Context
+from discord.utils import get
 
 
 class General(commands.Cog, name="general"):
@@ -23,6 +24,82 @@ class General(commands.Cog, name="general"):
             color=0x9C84EF
         )
         await context.send(embed=embed)
+
+    @commands.hybrid_command(
+        name="invites",
+        description="Check how many invites you have.",
+    )
+    async def invites(self, context: Context, user: discord.User = None) -> None:
+        """
+        Check how many invites you have.
+
+        :param context: The hybrid command context.
+        :param user: User to query for invites
+        """
+        if (user):
+            match_user = user
+            string_user = user.display_name
+        else:
+            match_user = context.author
+            string_user = context.author.display_name
+
+        totalInvites = 0
+        for i in await context.guild.invites():
+            if i.inviter == match_user:
+                totalInvites += i.uses
+
+        embed = discord.Embed(
+            title="",
+            description=f"**{string_user}** invited {totalInvites} member{'' if totalInvites == 1 else 's'} to the server!",
+            color=0x9C84EF
+        )
+        await context.send(embed=embed)
+
+
+    @commands.hybrid_command(
+        name="leaderboard",
+        description="Returns the top invites leaderboard.",
+    )
+    @commands.has_role("Admin")
+    async def leaderboard(self, context: Context) -> None:
+        """
+        Returns the top invites leaderboard.
+
+        :param context: The hybrid command context.
+        """
+
+        inviters = []
+        for i in await context.guild.invites():
+            inviters.append({
+                "user": f'{i.inviter.mention}',
+                "uses": i.uses
+            })
+
+            if (i.uses >= 0):
+                member = context.guild.get_member(i.inviter.id)
+                if (member):
+                    role = get(context.guild.roles, name = "Beta")
+                    user_with_role = [m for m in context.guild.members if role in m.roles]
+
+                    if (len(user_with_role) < 100):
+                        await member.add_roles(role)
+
+
+        sorted_inviters = sorted(inviters, key=lambda d: d['uses'], reverse=True)
+
+        desc_output = ''
+        for index, inviter in enumerate(sorted_inviters):
+            if (index != 0):
+                desc_output += '\n'
+            desc_output += f'`{index+1}. `{inviter["user"]} • {inviter["uses"]}'
+
+        embed = discord.Embed(
+            title="🏆 Invites Leaderboard",
+            description=f"{desc_output}",
+            color=0x9C84EF
+        )
+        await context.send(embed=embed)
+
 
 async def setup(bot):
     await bot.add_cog(General(bot))
