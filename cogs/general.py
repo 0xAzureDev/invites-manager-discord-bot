@@ -60,7 +60,6 @@ class General(commands.Cog, name="general"):
         name="leaderboard",
         description="Returns the top invites leaderboard.",
     )
-    @commands.has_role("Admin")
     async def leaderboard(self, context: Context) -> None:
         """
         Returns the top invites leaderboard.
@@ -75,15 +74,14 @@ class General(commands.Cog, name="general"):
                 "uses": i.uses
             })
 
-            if (i.uses >= 0):
+            if (i.uses >= 5):
                 member = context.guild.get_member(i.inviter.id)
                 if (member):
                     role = get(context.guild.roles, name = "Beta")
                     user_with_role = [m for m in context.guild.members if role in m.roles]
 
-                    if (len(user_with_role) < 100):
+                    if (len(user_with_role) <= 100):
                         await member.add_roles(role)
-
 
         sorted_inviters = sorted(inviters, key=lambda d: d['uses'], reverse=True)
 
