@@ -36,12 +36,9 @@ class General(commands.Cog, name="general"):
         :param context: The hybrid command context.
         :param user: User to query for invites
         """
-        if (user):
-            match_user = user
-            string_user = user.display_name
-        else:
-            match_user = context.author
-            string_user = context.author.display_name
+
+        match_user = (user if user else context.user)
+        string_user = (user.display_name if user else context.author.display_name)
 
         totalInvites = 0
         for i in await context.guild.invites():
@@ -51,8 +48,9 @@ class General(commands.Cog, name="general"):
         embed = discord.Embed(
             title="",
             description=f"**{string_user}** invited {totalInvites} member{'' if totalInvites == 1 else 's'} to the server!",
-            color=0x9C84EF
+            color=0x0878FC
         )
+
         await context.send(embed=embed)
 
 
@@ -74,14 +72,14 @@ class General(commands.Cog, name="general"):
                 "uses": i.uses
             })
 
-            if (i.uses >= 5):
+            # Give first 100 users a role for inviting 5 people
+            role = get(context.guild.roles, name = "Beta")
+            user_with_role = [m for m in context.guild.members if role in m.roles]
+
+            if (i.uses >= 5 and len(user_with_role) <= 100):
                 member = context.guild.get_member(i.inviter.id)
                 if (member):
-                    role = get(context.guild.roles, name = "Beta")
-                    user_with_role = [m for m in context.guild.members if role in m.roles]
-
-                    if (len(user_with_role) <= 100):
-                        await member.add_roles(role)
+                    await member.add_roles(role)
 
         sorted_inviters = sorted(inviters, key=lambda d: d['uses'], reverse=True)
 
@@ -94,8 +92,9 @@ class General(commands.Cog, name="general"):
         embed = discord.Embed(
             title="🏆 Invites Leaderboard",
             description=f"{desc_output}",
-            color=0x9C84EF
+            color=0x0878FC
         )
+
         await context.send(embed=embed)
 
 
