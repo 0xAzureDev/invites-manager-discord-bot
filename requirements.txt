@@ -1,4 +1,0 @@
-aiohttp
-asyncio
-discord.py
-sqlite3
